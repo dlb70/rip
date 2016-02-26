@@ -7,7 +7,7 @@ LOCALHOST = "127.0.0.1"
 CONFIGFILE = sys.argv[1]
 BUFSIZE = 1023
 TIMER = 30
-TIMEOUT = 5
+TIMEOUT = 1
 
 class Router(object):
     def __init__(self, rtrid, inputPorts, outputs):
@@ -56,7 +56,7 @@ class Router(object):
     
     def broadcast(self):
         """ Send a request message to all outputs """
-        pass
+        raise Exception("NotImplementedError")
     
     def wait(self):
         """ Waits for an incoming packet """
@@ -77,19 +77,19 @@ class Router(object):
     
     def sendRequest(self, output):
         """ Send a request message to the defined output """
-        pass
+        raise Exception("NotImplementedError")
     
     def parseRequest(self):
         """ Do something with a request message """
-        pass
+        raise Exception("NotImplementedError")
     
     def sendResponse(self, output):
         """" Send a response message to the defined output """
-        pass
+        raise Exception("NotImplementedError")
     
     def parseResponse(self):
         """ Do something with a response message """
-        pass
+        raise Exception("NotImplementedError")
     
     def close(self):
         """ close all sockets and exit cleanly """
@@ -99,6 +99,8 @@ class Router(object):
         except:
             print("WARNING!!! Could not exit cleanly! " + 
                 "Sockets may still be open!")
+            return 1
+        return 0
 
 
 def parseOutput(string):
@@ -135,7 +137,6 @@ def main(router):
         
     while True: 
         router.wait()
-        sleep(5)
 
 if (__name__ =="__main__"):
     configFile = open(CONFIGFILE,'r')

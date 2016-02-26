@@ -3,11 +3,14 @@ from time import time,sleep
 import socket
 from select import select
 
+
+### GLOBALS ###
 LOCALHOST = "127.0.0.1"
 CONFIGFILE = sys.argv[1]
-BUFSIZE = 1023
-TIMER = 30
-TIMEOUT = 1
+BUFSIZE = 1023      # Maximum bytes read by socket.recvfrom()
+TIMER = 6           # Time between periodic updates
+TIMEOUT = TIMER/6.0 # Timout length for select()
+
 
 class Router(object):
     def __init__(self, rtrid, inputPorts, outputs):
@@ -47,32 +50,31 @@ class Router(object):
         for port in self.inputPorts:
             sock = self.openSocket(port)
             self.inputSockets.append(sock)
+        return self.inputSockets
     
     def openOutputSocket(self):
-        """ Allocates the first input socket as the output. 
+        """ Allocates the first input socket as the output socket
             Does not actually open a socket
         """
         self.outputSocket = self.inputSockets[0]
-    
-    def broadcast(self):
-        """ Send a request message to all outputs """
-        raise Exception("NotImplementedError")
+        return self.outputSocket
     
     def wait(self):
         """ Waits for an incoming packet """
         read, written, errors = select(self.inputSockets,[],[],TIMEOUT)
         if (len(read) > 0):
             for sock in read:
-                self.recievePacket(sock)
-        else:
-            print("timed out")
+                self.readPacket(sock)
+        
     
-    def recievePacket(self, sock):
-        """ Recieves a packet from the socket and does something with it """
+    def readPacket(self, sock):
+        """ Reads a packet from the socket 'sock'
+            Decides wether to process the packet as a request or a response
+        """
         packet = sock.recvfrom(BUFSIZE)
         address = packet[1]
         message = packet[0].decode(encoding='utf-8')
-        print("Packet recieved from " + str(address[0]) + ':' + str(address[1])  + ". Contents:")
+        print("Packet recieved from " + address[0] + ':' + str(address[1]))
         print(message)
     
     def sendRequest(self, output):
@@ -90,6 +92,11 @@ class Router(object):
     def parseResponse(self):
         """ Do something with a response message """
         raise Exception("NotImplementedError")
+    
+    def broadcast(self):
+        """ Send a request message to all outputs """
+        for output in self.outputs:
+            self.sendRequest(output)
     
     def close(self):
         """ close all sockets and exit cleanly """

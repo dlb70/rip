@@ -87,7 +87,16 @@ class Router(object):
             return 0
     
     def sendUpdate(self, output):
-        """" Send a update message to the defined output """
+        """ Send a update message to the defined output. This involves sending
+            a packet identifying the sender, and the sender's entry table.
+            The entry table sent will include an entry for the sender with a
+            metric set to zero.
+
+            Split horizon - Avoid creating a loop that would be 
+                created by including routes that run through the output.
+            Poizoned reverse - Instead of just removing those routes, set their
+                metric to infinity (A constant INFINITY in reality)
+        """
         self.outputSocket.sendto(bytes("MESSAGE",'utf-8'),(LOCALHOST,output.port))
     
     def recieveUpdate(self, sock):

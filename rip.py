@@ -104,24 +104,20 @@ class Router(object):
         else:
             return 0
     
-    def readPacket(self, sock):
-        """ Reads a packet from the socket 'sock'
-            Decides wether to process the packet as a request or a response
-        """
-        packet = sock.recvfrom(BUFSIZE)
-        address = packet[1]
-        message = packet[0].decode(encoding='utf-8')
-        print("Packet recieved from " + address[0] + ':' + str(address[1]))
-        return (message, address)
-     
     def sendUpdate(self, output):
         """" Send a update message to the defined output """
         raise Exception("NotImplementedError")
     
-    def recieveUpdate(self):
-        """ Do something with a recieved update message """
-        raise Exception("NotImplementedError")
-    
+    def recieveUpdate(self, sock):
+        """ Reads a packet from the socket 'sock'
+            Returns a tuple containing the str message and int address
+        """
+        packet = sock.recvfrom(BUFSIZE)
+        address = int(packet[1])
+        message = packet[0].decode(encoding='utf-8')
+        print("Packet recieved from " + address[0] + ':' + str(address[1]))
+        return (message, address)
+     
     def broadcast(self):
         """ Send a request message to all outputs """
         for output in self.outputs.keys():

@@ -1,5 +1,6 @@
 import sys
 from time import time,sleep
+from random import random
 import socket
 from select import select
 
@@ -111,32 +112,23 @@ class Router(object):
         address = packet[1]
         message = packet[0].decode(encoding='utf-8')
         print("Packet recieved from " + address[0] + ':' + str(address[1]))
-        print(message)
-    
-    def sendRequest(self, output):
-        """ Send a request message to the defined output """
-        self.outputSocket.sendto(bytes("Hello!",'utf-8'),
-                                    ("127.0.0.1",output.port))
-    
-    def parseRequest(self):
-        """ Do something with a request message """
+        return (message, address)
+     
+    def sendUpdate(self, output):
+        """" Send a update message to the defined output """
         raise Exception("NotImplementedError")
     
-    def sendResponse(self, output):
-        """" Send a response message to the defined output """
-        raise Exception("NotImplementedError")
-    
-    def parseResponse(self):
-        """ Do something with a response message """
+    def recieveUpdate(self):
+        """ Do something with a recieved update message """
         raise Exception("NotImplementedError")
     
     def broadcast(self):
         """ Send a request message to all outputs """
         for output in self.outputs.keys():
-            self.sendRequest(self.outputs.get(output))
+            self.sendUpdate(self.outputs.get(output))
     
     def close(self):
-        """ close all sockets and exit cleanly """
+        """ close all sockets """
         try:
             for sock in self.inputSockets:
                 sock.close()
@@ -149,8 +141,8 @@ class Router(object):
 
 
 def createRouter(cfg):
-    """ Reads the provided config file and returns a newly created 
-        Router object
+    """ Wrapper function for creating a Router object from a 
+        configuration file
     """
     l = cfg.readline().strip('\n')
     while (l != ""):
@@ -178,12 +170,14 @@ def main(router):
     router.openOutputSocket()
     router.broadcast()
     t = time()
+    t += (random() - 0.5) * (TIMER * 0.4) # adds randomness to the timer
     while True: 
         if ((time() - t) >= TIMER):
-            t = time()
+            t = time() + (
             router.broadcast()
+        
         if (router.wait() == 1): # router recieved a packet
-            print("MAIN: router recieved a packet")
+            # print("MAIN: router recieved a packet")
         
 
 if (__name__ =="__main__"):

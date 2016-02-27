@@ -12,6 +12,40 @@ TIMER = 6           # Time between periodic updates
 TIMEOUT = TIMER/6.0 # Timout length for select()
 
 
+# """
+# {
+# ADDRESS1:[ADDRESS,ROUTER,INTERFACE,METRIC,TIMER]
+# ADDRESS2:[ADDRESS,ROUTER,INTERFACE,METRIC,TIMER]
+# }
+# ADDRESS     Destination host ID (rtrid)
+# ROUTER      First hop ID (rtrid)
+# INTERFACE   First hop interface (output)
+# METRIC      Cost of route to destination (metric)
+# TIMER       Time since last update in seconds
+# """
+
+class EntryTable(object):
+    def __init__(self):
+        self.table = {}
+    
+    def addEntry(self, dest, first, output ):
+        self.table.update({entry[0]:entry})
+
+class Output(object):
+    def __init__(self, string):
+        """ Takes a string input of the form "port-metric-dest" """
+        elements = string.split('-')
+        self.port   = int(elements[0])
+        self.metric = int(elements[1])
+        self.dest   = int(elements[2])
+
+    def __repr__(self):
+        rstr = "("
+        rstr += "port:" + str(self.port) + ','
+        rstr += "metric:" + str(self.metric) + ','
+        rstr += "dest:" + str(self.dest) + ')'
+        return rstr
+
 class Router(object):
     def __init__(self, rtrid, inputPorts, outputs):
         """
@@ -28,11 +62,11 @@ class Router(object):
         self.outputSocket = None
     
     def show(self):
-        print(self.rtrid)
-        print(self.inputPorts)
+        print("ID: " + str(self.rtrid))
+        print("Inputs: " + str(self.inputPorts))
         print("Outputs: ")
-        for output in self.outputs:
-            print(output)
+        for output in sorted(self.outputs.keys()):
+            print(" - " + str(self.outputs.get(output)))
     
     def openSocket(self, port):
         """ Open the socket for the router """
@@ -44,7 +78,7 @@ class Router(object):
         except:
             print("Could not open socket on port " + str(port))
             self.close()
-        
+    
     def openInputSockets(self):
         """ Creates a list of opened sockets using the asigned ports """
         for port in self.inputPorts:
@@ -65,7 +99,9 @@ class Router(object):
         if (len(read) > 0):
             for sock in read:
                 self.readPacket(sock)
-        
+            return 1
+        else:
+            return 0
     
     def readPacket(self, sock):
         """ Reads a packet from the socket 'sock'
@@ -79,7 +115,8 @@ class Router(object):
     
     def sendRequest(self, output):
         """ Send a request message to the defined output """
-        raise Exception("NotImplementedError")
+        self.outputSocket.sendto(bytes("Hello!",'utf-8'),
+                                    ("127.0.0.1",output.port))
     
     def parseRequest(self):
         """ Do something with a request message """
@@ -95,8 +132,8 @@ class Router(object):
     
     def broadcast(self):
         """ Send a request message to all outputs """
-        for output in self.outputs:
-            self.sendRequest(output)
+        for output in self.outputs.keys():
+            self.sendRequest(self.outputs.get(output))
     
     def close(self):
         """ close all sockets and exit cleanly """
@@ -110,14 +147,6 @@ class Router(object):
         return 0
 
 
-def parseOutput(string):
-    """ Takes a string input of the form port-dest-metric
-        Returns a dict with the values mapped to their names
-    """
-    elements = string.split('-')
-    return {'dest':elements[2], 
-            'port':elements[0], 
-            'metric':elements[1]}
 
 def createRouter(cfg):
     """ Reads the provided config file and returns a newly created 
@@ -127,12 +156,18 @@ def createRouter(cfg):
     while (l != ""):
         if l.startswith("router-id"):
             rtrid = int(l.split(' ')[1])
+        
         if l.startswith("input-ports"):
             inputs = l.strip("input-ports ").split(' ')
             inputs = list(map(int, inputs))
+        
         if l.startswith("outputs"):
-            outputs = l.strip("outputs ").split(' ')
-            outputs = list(map(parseOutput, outputs))
+            outputList = l.strip("outputs ").split(' ')
+            outputs = {}
+            for string in outputList:
+                newOutput = Output(string)
+                outputs.update({newOutput.dest:newOutput})
+        
         l = cfg.readline().strip('\n')
     return Router(rtrid,inputs,outputs)
 
@@ -141,9 +176,15 @@ def createRouter(cfg):
 def main(router):
     router.openInputSockets()
     router.openOutputSocket()
-        
+    router.broadcast()
+    t = time()
     while True: 
-        router.wait()
+        if ((time() - t) >= TIMER):
+            t = time()
+            router.broadcast()
+        if (router.wait() == 1): # router recieved a packet
+            print("MAIN: router recieved a packet")
+        
 
 if (__name__ =="__main__"):
     configFile = open(CONFIGFILE,'r')

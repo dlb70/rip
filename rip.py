@@ -13,24 +13,6 @@ TIMER = 6           # Time between periodic updates
 TIMEOUT = TIMER/6.0 # Timout length for select()
 
 
-# """
-# {
-# ADDRESS1:[ADDRESS,ROUTER,INTERFACE,METRIC,TIMER]
-# ADDRESS2:[ADDRESS,ROUTER,INTERFACE,METRIC,TIMER]
-# }
-# ADDRESS     Destination host ID (rtrid)
-# ROUTER      First hop ID (rtrid)
-# INTERFACE   First hop interface (output)
-# METRIC      Cost of route to destination (metric)
-# TIMER       Time since last update in seconds
-# """
-
-class EntryTable(object):
-    def __init__(self):
-        self.table = {}
-    
-    def addEntry(self, dest, first, output ):
-        self.table.update({entry[0]:entry})
 
 class Output(object):
     def __init__(self, string):
@@ -48,14 +30,14 @@ class Output(object):
         return rstr
 
 class Router(object):
-    def __init__(self, rtrid, inputPorts, outputs):
+    def __init__(self, id, inputPorts, outputs):
         """
-            rtrid       - is the int ID of the router
+            id          - is the int ID of the router
             inputPorts  - is a list of ints which are ports on which to listen
             outputs     - is a list of dict(s) of the form specified 
                             in parseOutput()
         """
-        self.rtrid = rtrid
+        self.id = id
         self.entryTable = []
         self.inputPorts = inputPorts
         self.inputSockets = []
@@ -63,7 +45,7 @@ class Router(object):
         self.outputSocket = None
     
     def show(self):
-        print("ID: " + str(self.rtrid))
+        print("ID: " + str(self.id))
         print("Inputs: " + str(self.inputPorts))
         print("Outputs: ")
         for output in sorted(self.outputs.keys()):
@@ -99,21 +81,21 @@ class Router(object):
         read, written, errors = select(self.inputSockets,[],[],TIMEOUT)
         if (len(read) > 0):
             for sock in read:
-                self.readPacket(sock)
+                self.recieveUpdate(sock)
             return 1
         else:
             return 0
     
     def sendUpdate(self, output):
         """" Send a update message to the defined output """
-        raise Exception("NotImplementedError")
+        self.outputSocket.sendto(bytes("MESSAGE",'utf-8'),(LOCALHOST,output.port))
     
     def recieveUpdate(self, sock):
         """ Reads a packet from the socket 'sock'
-            Returns a tuple containing the str message and int address
+            Returns a tuple containing the str message and tuple address
         """
         packet = sock.recvfrom(BUFSIZE)
-        address = int(packet[1])
+        address = packet[1]
         message = packet[0].decode(encoding='utf-8')
         print("Packet recieved from " + address[0] + ':' + str(address[1]))
         return (message, address)
@@ -166,13 +148,14 @@ def main(router):
     router.openOutputSocket()
     router.broadcast()
     t = time()
-    t += (random() - 0.5) * (TIMER * 0.4) # adds randomness to the timer
     while True: 
         if ((time() - t) >= TIMER):
-            t = time() + (
+            t = time()
+            t += (random() - 0.5) * (TIMER * 0.4) # adds randomness to timer 
             router.broadcast()
         
         if (router.wait() == 1): # router recieved a packet
+            pass
             # print("MAIN: router recieved a packet")
         
 

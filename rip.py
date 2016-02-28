@@ -14,13 +14,69 @@ TIMEOUT = TIMER/6.0 # Timout length for select()
 
 
 
+class Entry(object):
+    def __init__(self, dest, first, metric, time):
+        self.dest = dest # Destination dest (Router.id)
+        self.first = first # First first along route (Router.id)
+        self.metric = metric # The metric of this route
+        self.time = time # The time value of when this entry was last udated
+    
+    def __repr__(self):
+        rstr = ""
+        rstr += "dest:" + str(self.dest) + ' '
+        rstr += "first:" + str(self.first) + ' '
+        rstr += "metric:" + str(self.metric) + ' '
+        rstr += "time:" + str(self.timer()) + ''
+        return rstr
+
+    def timer(self):
+        return time() - self.time
+
+
+class EntryTable(object):
+    def __init__(self):
+        self.entries = {}
+
+    def __repr__(self):
+        rstr = str(self.entries)
+        return rstr
+
+    def __str__(self):
+        return repr(self)
+
+    def toStr(self):
+        rstr = ""
+        for entry in self.getEntries():
+            rstr += str(entry) + '\n'
+        return rstr
+
+    def destinations(self):
+        """ Returns a sorted list of destinations in the table """
+        return sorted(self.entries.keys())
+
+    def get(self, dest):
+        """ Returns an entry from the table specified by destination """
+        return self.entries.get(dest)
+
+    def getEntries(self):
+        """ iterator function to return all entries in order """
+        for dest in self.destinations():
+            yield self.get(dest)
+
+    def addEntry(self, entry):
+        if (entry.dest not in self.entries.keys()):
+            self.entries.update({entry.dest:entry})
+        else:
+            raise Exception("entry already in table: " + str(entry))
+
+
 class Output(object):
     def __init__(self, string):
         """ Takes a string input of the form "port-metric-dest" """
         elements = string.split('-')
         self.port   = int(elements[0])
         self.metric = int(elements[1])
-        self.dest   = int(elements[2])
+        self.dest   = int(elements[2]) # the Router.id of the router
 
     def __repr__(self):
         rstr = "("
@@ -38,7 +94,7 @@ class Router(object):
                             in parseOutput()
         """
         self.id = id
-        self.entryTable = []
+        self.entryTable = EntryTable()
         self.inputPorts = inputPorts
         self.inputSockets = []
         self.outputs = outputs
@@ -50,6 +106,9 @@ class Router(object):
         print("Outputs: ")
         for output in sorted(self.outputs.keys()):
             print(" - " + str(self.outputs.get(output)))
+        print("Table: ")
+        for entry in self.entryTable.getEntries():
+            print(" - " + str(entry))
     
     def openSocket(self, port):
         """ Open the socket for the router """
@@ -159,6 +218,7 @@ def main(router):
     t = time()
     while True: 
         if ((time() - t) >= TIMER):
+            router.show()
             t = time()
             t += (random() - 0.5) * (TIMER * 0.4) # adds randomness to timer 
             router.broadcast()

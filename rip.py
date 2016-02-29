@@ -119,7 +119,7 @@ class Router(object):
             print(" - " + str(entry))
     
     def openSocket(self, port):
-        """ Open the socket for the router """
+        """ Open a socket for the router on the integer port. """
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.bind((LOCALHOST, port))
@@ -130,28 +130,18 @@ class Router(object):
             self.close()
     
     def openInputSockets(self):
-        """ Creates a list of opened sockets using the asigned ports """
+        """ Creates a list of opened sockets using the asigned ports. """
         for port in self.inputPorts:
             sock = self.openSocket(port)
             self.inputSockets.append(sock)
         return self.inputSockets
     
     def openOutputSocket(self):
-        """ Allocates the first input socket as the output socket
-            Does not actually open a socket
+        """ Allocates the first input socket as the output socket.
+            Does not actually open a socket.
         """
         self.outputSocket = self.inputSockets[0]
         return self.outputSocket
-    
-    def wait(self):
-        """ Waits for an incoming packet """
-        read, written, errors = select(self.inputSockets,[],[],TIMEOUT)
-        if (len(read) > 0):
-            for sock in read:
-                self.recieveUpdate(sock)
-            return 1
-        else:
-            return 0
     
     def sendUpdate(self, output):
         """ Send a update message to the defined output. This involves sending
@@ -175,12 +165,31 @@ class Router(object):
         address = packet[1]
         message = packet[0].decode(encoding='utf-8')
         print("Packet recieved from " + address[0] + ':' + str(address[1])) #DEBUG
-        return (message, address)
+        return message
      
     def broadcast(self):
         """ Send a request message to all outputs """
         for output in self.outputs.keys():
             self.sendUpdate(self.outputs.get(output))
+    
+    def wait(self):
+        """ Waits for an incoming packet. Returns a list of packets to be 
+            processed, or None if there were no queued packets.
+        """
+        read, written, errors = select(self.inputSockets,[],[],TIMEOUT)
+        if (len(read) > 0):
+            packets = []
+            for sock in read:
+                message = self.recieveUpdate(sock)
+                packets.append(message)
+            return packets
+        else:
+            return None
+    
+    def process(self, message):
+        """ Takes an update message and processes it.
+        """
+        raise Exception("NotImplementedError")
     
     def close(self):
         """ close all sockets """
@@ -232,10 +241,10 @@ def main(router):
             t += (random() - 0.5) * (TIMER * 0.4) # adds randomness to timer 
             router.broadcast()
         
-        if (router.wait() == 1): # router recieved a packet
-            pass
-            # print("MAIN: router recieved a packet")
-        
+        packets = router.wait()
+        if (packets != None):
+            for packet in packets:
+                router.process(packet)
 
 if (__name__ =="__main__"):
     configFile = open(CONFIGFILE,'r')
@@ -245,10 +254,17 @@ if (__name__ =="__main__"):
     try:
         main(router)
     except(KeyboardInterrupt, SystemExit):
-        print("\nRecieved interrupt, closing...  ")
+        print("\nrecieved interrupt, closing...  ")
         router.close()
         print("done")
         input("Press [ENTER] to exit")
         exit()
-    
+    except Exception as error:
+        print(type(error))
+        print(error)
+        print("\nrecieved Exception, closing...  ")
+        router.close()
+        print("done")
+        input("Press [ENTER] to exit")
+        exit()
 

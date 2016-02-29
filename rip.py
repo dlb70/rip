@@ -259,12 +259,3 @@ if (__name__ =="__main__"):
         print("done")
         input("Press [ENTER] to exit")
         exit()
-    except Exception as error:
-        print(type(error))
-        print(error)
-        print("\nrecieved Exception, closing...  ")
-        router.close()
-        print("done")
-        input("Press [ENTER] to exit")
-        exit()
-

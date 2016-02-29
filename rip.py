@@ -218,7 +218,7 @@ def main(router):
     t = time()
     while True: 
         if ((time() - t) >= TIMER):
-            router.show()
+            # router.show()
             t = time()
             t += (random() - 0.5) * (TIMER * 0.4) # adds randomness to timer 
             router.broadcast()

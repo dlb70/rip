@@ -28,10 +28,10 @@ class Entry(object):
         rstr += "metric:" + str(self.metric) + ' '
         rstr += "time:" + str(self.timer()) + ''
         return rstr
-
+    
     def timer(self):
         return time() - self.time
-
+    
 
 class EntryTable(object):
     def __init__(self):
@@ -51,23 +51,31 @@ class EntryTable(object):
         return rstr
 
     def destinations(self):
-        """ Returns a sorted list of destinations in the table """
+        """ Returns a sorted list of destinations in the table. """
         return sorted(self.entries.keys())
 
-    def get(self, dest):
-        """ Returns an entry from the table specified by destination """
+    def getEntry(self, dest):
+        """ Returns an entry from the table specified by destination. """
         return self.entries.get(dest)
 
     def getEntries(self):
-        """ iterator function to return all entries in order """
+        """ iterator function to return all entries in order. """
         for dest in self.destinations():
             yield self.get(dest)
 
     def addEntry(self, entry):
-        if (entry.dest not in self.entries.keys()):
+        """ Adds an entry to the table. Doesn't add if there is a conflict. """
+        if (self.getEntry(entry.dest) == None):
             self.entries.update({entry.dest:entry})
         else:
             raise Exception("entry already in table: " + str(entry))
+    
+    def removeEntry(self, dest):
+        """ Removes an entry from the table by destination """
+        if (self.get(dest) == None):
+            return None
+        else:
+            return self.entries.pop(dest)
 
 
 class Output(object):
@@ -156,7 +164,8 @@ class Router(object):
             Poizoned reverse - Instead of just removing those routes, set their
                 metric to infinity (A constant INFINITY in reality)
         """
-        self.outputSocket.sendto(bytes("MESSAGE",'utf-8'),(LOCALHOST,output.port))
+        self.outputSocket.sendto(bytes("MESSAGE",'utf-8'),
+                                    (LOCALHOST,output.port))
     
     def recieveUpdate(self, sock):
         """ Reads a packet from the socket 'sock'
@@ -165,7 +174,7 @@ class Router(object):
         packet = sock.recvfrom(BUFSIZE)
         address = packet[1]
         message = packet[0].decode(encoding='utf-8')
-        print("Packet recieved from " + address[0] + ':' + str(address[1]))
+        print("Packet recieved from " + address[0] + ':' + str(address[1])) #DEBUG
         return (message, address)
      
     def broadcast(self):

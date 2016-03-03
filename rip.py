@@ -11,6 +11,7 @@ CONFIGFILE = sys.argv[1]
 BUFSIZE = 1023      # Maximum bytes read by socket.recvfrom()
 TIMER = 6           # Time between periodic updates
 TIMEOUT = TIMER/6.0 # Timout length for select()
+ENTRY_TIMEOUT = TIMER * 6 # Timeout length for entry invalidation
 
 
 

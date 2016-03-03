@@ -189,7 +189,7 @@ class Router(object):
             return None
     
     def process(self, message):
-        """ Takes an update message and processes it.
+        """ Takes an update message as a string and processes it.
         """
         raise Exception("NotImplementedError")
     

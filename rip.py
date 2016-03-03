@@ -1,6 +1,7 @@
 import sys
 from time import time,sleep
 from random import random
+from hashlib import md5
 import socket
 from select import select
 
@@ -120,6 +121,14 @@ class Router(object):
         for entry in self.entryTable.getEntries():
             print(" - " + str(entry))
     
+    def checksum(self, payload):
+        """ Returns a checksum of the payload """
+        return md5(bytes(payload, 'utf-8')).hexdigest()[:10]
+
+    def verifies(self, message):
+        """ Returns True if a packet is valid, False if invalid """
+        return (message[:10] == self.checksum(message[10:]))
+    
     def openSocket(self, port):
         """ Open a socket for the router on the integer port. """
         try:
@@ -156,8 +165,22 @@ class Router(object):
             Poizoned reverse - Instead of just removing those routes, set their
                 metric to infinity (A constant INFINITY in reality)
         """
-        self.outputSocket.sendto(bytes("MESSAGE",'utf-8'),
+
+        message = '\n' + "MESSAGE" # newline is added to separate checksum
+        checksum = self.checksum(message)
+        self.outputSocket.sendto(bytes(checksum + message,'utf-8'),
                                     (LOCALHOST,output.port))
+
+    def process(self, message):
+        """ Takes an update message as a string and processes it.
+            If the checksum does not match the payload, drop the packet.
+            Returns True on success
+        """
+        # Error checking
+        if not (self.verifies(message)):
+            print("Invalid packet.")
+            return None # Drop the packet
+        return True
     
     def recieveUpdate(self, sock):
         """ Reads a packet from the socket 'sock'
@@ -187,11 +210,6 @@ class Router(object):
             return messages
         else:
             return None
-    
-    def process(self, message):
-        """ Takes an update message as a string and processes it.
-        """
-        raise Exception("NotImplementedError")
     
     def garbageCollect(self):
         """ Removes expired entries in the entry table. 

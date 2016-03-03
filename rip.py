@@ -175,16 +175,16 @@ class Router(object):
             self.sendUpdate(self.outputs.get(output))
     
     def wait(self):
-        """ Waits for an incoming packet. Returns a list of packets to be 
-            processed, or None if there were no queued packets.
+        """ Waits for an incoming packet. Returns a list of update messages 
+            to be processed, or None if there were no queued packets.
         """
         read, written, errors = select(self.inputSockets,[],[],TIMEOUT)
         if (len(read) > 0):
-            packets = []
+            messages = []
             for sock in read:
                 message = self.recieveUpdate(sock)
-                packets.append(message)
-            return packets
+                messages.append(message)
+            return messages
         else:
             return None
     

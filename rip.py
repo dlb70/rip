@@ -192,6 +192,19 @@ class Router(object):
         """
         raise Exception("NotImplementedError")
     
+    def garbageCollect(self):
+        """ Removes expired entries in the entry table. 
+            Returns a list of removed destinations.
+        """
+        expired = []
+        for entry in self.entryTable.getEntries():
+            if (entry.timer() > ENTRY_TIMEOUT):
+                expired.append(entry.dest)
+        for dest in expired:
+            self.entryTable.removeEntry(dest)
+        return expired
+            
+    
     def close(self):
         """ close all sockets """
         try:

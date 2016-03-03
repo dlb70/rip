@@ -12,6 +12,7 @@ BUFSIZE = 1023      # Maximum bytes read by socket.recvfrom()
 TIMER = 6           # Time between periodic updates
 TIMEOUT = TIMER/6.0 # Timout length for select()
 ENTRY_TIMEOUT = TIMER * 6 # Timeout length for entry invalidation
+INFINITY = 16
 
 
 
@@ -201,7 +202,7 @@ class Router(object):
             if (entry.timer() > ENTRY_TIMEOUT):
                 expired.append(entry.dest)
         for dest in expired:
-            self.entryTable.removeEntry(dest)
+            self.entryTable.getEnty(dest).metric = INFINITY
         return expired
             
     
@@ -251,8 +252,8 @@ def main(router):
     while True: 
         if ((time() - t) >= TIMER):
             # router.show()
-            t = time()
-            t += (random() - 0.5) * (TIMER * 0.4) # adds randomness to timer 
+            t = time() + (random() - 0.5) * (TIMER * 0.4) # Randomises timer
+            router.garbageCollect()
             router.broadcast()
         
         packets = router.wait()

@@ -197,11 +197,11 @@ class Router(object):
         for output in self.outputs.keys():
             self.sendUpdate(self.outputs.get(output))
     
-    def wait(self):
+    def wait(self, timeout):
         """ Waits for an incoming packet. Returns a list of update messages 
             to be processed, or None if there were no queued packets.
         """
-        read, written, errors = select(self.inputSockets,[],[],TIMEOUT)
+        read, written, errors = select(self.inputSockets,[],[],timeout)
         if (len(read) > 0):
             messages = []
             for sock in read:
@@ -221,7 +221,10 @@ class Router(object):
                 expired.append(entry.dest)
         for dest in expired:
             self.entryTable.getEnty(dest).metric = INFINITY
-        return expired
+        if (len(expired) == 0):
+            return None
+        else:
+            return expired
             
     
     def close(self):
@@ -271,10 +274,11 @@ def main(router):
         if ((time() - t) >= TIMER):
             # router.show()
             t = time() + (random() - 0.5) * (TIMER * 0.4) # Randomises timer
-            router.garbageCollect()
             router.broadcast()
         
-        packets = router.wait()
+        packets = router.wait(TIMEOUT) # Wait for incoming packets
+        if (router.garbageCollect() != None):
+            router.broadcast()
         if (packets != None):
             for packet in packets:
                 router.process(packet)

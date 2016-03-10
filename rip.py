@@ -160,8 +160,8 @@ class Router(object):
             The entry table sent will include an entry for the sender with a
             metric set to zero.
 
-            Split horizon - Avoid creating a loop that would be 
-                created by including routes that run through the output.
+            Split horizon - Avoid loop creation by not sending routes that have
+                their first hop set to the defined output.
             Poizoned reverse - Instead of just removing those routes, set their
                 metric to infinity (A constant INFINITY in reality)
         """

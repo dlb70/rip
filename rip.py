@@ -189,7 +189,7 @@ class Router(object):
         packet = sock.recvfrom(BUFSIZE)
         address = packet[1]
         message = packet[0].decode(encoding='utf-8')
-        print("Packet recieved from " + address[0] + ':' + str(address[1])) #DEBUG
+        print("Packet recieved from " + address[0] + ':' + str(address[1]))#DBG
         return message
      
     def broadcast(self):
@@ -277,11 +277,12 @@ def main(router):
             router.broadcast()
         
         packets = router.wait(TIMEOUT) # Wait for incoming packets
-        if (router.garbageCollect() != None):
-            router.broadcast()
         if (packets != None):
             for packet in packets:
                 router.process(packet)
+
+        if (router.garbageCollect() != None):
+            router.broadcast()
 
 if (__name__ =="__main__"):
     configFile = open(CONFIGFILE,'r')

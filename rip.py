@@ -18,11 +18,13 @@ INFINITY = 99
 
 
 class Entry(object):
-    def __init__(self, dest, first, metric, time):
+    def __init__(self, dest, first, metric, t=None):
         self.dest = dest # Destination dest (Router.id)
         self.first = first # First first along route (Router.id)
         self.metric = metric # The metric of this route
-        self.time = time # The time value of when this entry was last udated
+        if (t == None):
+            t = time()
+        self.time = t # The time value of when this entry was last udated
     
     def __repr__(self):
         rstr = ""
@@ -64,7 +66,7 @@ class EntryTable(object):
     def getEntries(self):
         """ iterator function to return all entries in order. """
         for dest in self.destinations():
-            yield self.get(dest)
+            yield self.entries.get(dest)
 
     def addEntry(self, entry):
         """ Adds an entry to the table. Doesn't add if there is a conflict. """
@@ -75,7 +77,7 @@ class EntryTable(object):
     
     def removeEntry(self, dest):
         """ Removes an entry from the table by destination """
-        if (self.get(dest) == None):
+        if (self.entries.get(dest) == None):
             return None
         else:
             return self.entries.pop(dest)
@@ -194,6 +196,7 @@ class Router(object):
      
     def broadcast(self):
         """ Send a request message to all outputs """
+        self.show()
         for output in self.outputs.keys():
             self.sendUpdate(self.outputs.get(output))
     
@@ -212,19 +215,24 @@ class Router(object):
             return None
     
     def garbageCollect(self):
-        """ Removes expired entries in the entry table. 
-            Returns a list of removed destinations.
+        """ Removes expired entries from the entry table. 
+            Before removing the entries, set their metric to 99, and broadcast
+                an update.
+            Returns a list of removed destinations by their id.
         """
         expired = []
         for entry in self.entryTable.getEntries():
             if (entry.timer() > ENTRY_TIMEOUT):
                 expired.append(entry.dest)
-        for dest in expired:
-            self.entryTable.getEnty(dest).metric = INFINITY
-        if (len(expired) == 0):
-            return None
-        else:
+        if (len(expired) != 0):
+            for dest in expired: # Set metrics to infinity
+                self.entryTable.getEntry(dest).metric = INFINITY
+            self.broadcast()     # Broadcast Update
+            for dest in expired: # Remove Entries
+                self.entryTable.removeEntry(dest)
             return expired
+        else:
+            return None
             
     
     def close(self):
@@ -282,13 +290,17 @@ def main(router):
                 router.process(packet)
 
         if (router.garbageCollect() != None):
-            router.broadcast()
+            print("GARBAGE COLLECTION")
 
 if (__name__ =="__main__"):
+    print("\nReading from config file: " + CONFIGFILE)
     configFile = open(CONFIGFILE,'r')
+    print("INITIALIZING...")
     router = createRouter(configFile)
     configFile.close()
+    router.entryTable.addEntry(Entry(1,2,3))
     router.show()
+    print("INITIALIZED.\n\n\n")
     try:
         main(router)
     except(KeyboardInterrupt, SystemExit):

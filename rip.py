@@ -156,6 +156,31 @@ class Router(object):
         self.outputSocket = self.inputSockets[0]
         return self.outputSocket
     
+    def createUpdate(self, output):
+        """ Create an update message (as a string) from the router's
+            information and the routing table. 
+            
+            Message format:
+            '''
+            HEADER self.id-output.dest\n
+            ENTRY self.id-0\n
+            ENTRY dest-metric\n
+            ENTRY dest-metric\n
+            '''
+        """
+        # The first newline is to split the checksum from the message
+        message  = "\nHEADER " + str(self.id) + '-' + str(output.dest) + '\n'
+        message += "ENTRY " + str(self.id) + "-0\n"
+        for entry in self.entryTable.getEntries():
+            dest, metric = (entry.dest, entry.metric)
+            if (dest == output.dest): # Split Horizon with Poisoned Reverse
+                metric = INFINITY
+            message += "ENTRY " + str(dest) + '-' + str(metric) + '\n'
+
+        checksum = self.checksum(message)
+        return (checksum + message)
+        
+    
     def sendUpdate(self, output):
         """ Send a update message to the defined output. This involves sending
             a packet identifying the sender, and the sender's entry table.
@@ -167,10 +192,9 @@ class Router(object):
             Poizoned reverse - Instead of just removing those routes, set their
                 metric to infinity (A constant INFINITY in reality)
         """
-
-        message = '\n' + "MESSAGE" # newline is added to separate checksum
-        checksum = self.checksum(message)
-        self.outputSocket.sendto(bytes(checksum + message,'utf-8'),
+        message = self.createUpdate(output)
+        print(message)
+        self.outputSocket.sendto(bytes(message,'utf-8'),
                                     (LOCALHOST,output.port))
 
     def process(self, message):
@@ -298,7 +322,6 @@ if (__name__ =="__main__"):
     print("INITIALIZING...")
     router = createRouter(configFile)
     configFile.close()
-    router.entryTable.addEntry(Entry(1,2,3))
     router.show()
     print("INITIALIZED.\n\n\n")
     try:

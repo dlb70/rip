@@ -3,7 +3,7 @@
 
 GEOM="--geometry=50x26"
 
-for i in 1 2 3; do
+for i in 1 2 3 4; do
   echo $i;
   gnome-terminal $GEOM -e "python3 rip.py $i.cfg" -t "Router $i" &
   sleep 0.2

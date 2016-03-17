@@ -31,7 +31,7 @@ class Entry(object):
         rstr += "dest:" + str(self.dest) + ' '
         rstr += "first:" + str(self.first) + ' '
         rstr += "metric:" + str(self.metric) + ' '
-        rstr += "time:" + str(self.timer()) + ''
+        rstr += "time:" + str(self.timer())[:4] + ''
         return rstr
     
     def timer(self):
@@ -64,16 +64,33 @@ class EntryTable(object):
         return self.entries.get(dest)
 
     def getEntries(self):
-        """ iterator function to return all entries in order. """
+        """ Iterator function to return all entries in order. """
         for dest in self.destinations():
             yield self.entries.get(dest)
 
-    def addEntry(self, entry):
-        """ Adds an entry to the table. Doesn't add if there is a conflict. """
-        if (self.getEntry(entry.dest) == None):
+    def update(self, entry):
+        """ Tests to see wether the new entry should be added.
+            Adds the entry to the table (replacing older entry if there).
+            Returns the new entry if added, or None if not added.
+        """
+        current = self.getEntry(entry.dest)
+        
+        if (current == None): # If no record of destination
+            if (entry.metric < INFINITY):
+                self.entries.update({entry.dest:entry})
+            return entry
+        
+        if (current.first == entry.first): # If it came from the first hop
+            if (entry.metric < INFINITY):
+                self.entries.update({entry.dest:entry})
+            return entry
+        
+        if (entry.metric < current.metric): 
             self.entries.update({entry.dest:entry})
-        else:
-            raise Exception("entry already in table: " + str(entry))
+            return entry
+    
+        return None
+            
     
     def removeEntry(self, dest):
         """ Removes an entry from the table by destination """
@@ -99,14 +116,14 @@ class Output(object):
         return rstr
 
 class Router(object):
-    def __init__(self, id, inputPorts, outputs):
+    def __init__(self, rtrid, inputPorts, outputs):
         """
             id          - is the int ID of the router
             inputPorts  - is a list of ints which are ports on which to listen
             outputs     - is a list of dict(s) of the form specified 
                             in parseOutput()
         """
-        self.id = id
+        self.id = rtrid
         self.entryTable = EntryTable()
         self.inputPorts = inputPorts
         self.inputSockets = []
@@ -162,20 +179,21 @@ class Router(object):
             
             Message format:
             '''
-            HEADER self.id-output.dest\n
-            ENTRY self.id-0\n
-            ENTRY dest-metric\n
-            ENTRY dest-metric\n
+            HEADER self.id output.dest\n
+            ENTRY self.id 0\n
+            ENTRY dest metric\n
+            ENTRY dest metric\n
             '''
         """
         # The first newline is to split the checksum from the message
-        message  = "\nHEADER " + str(self.id) + '-' + str(output.dest) + '\n'
-        message += "ENTRY " + str(self.id) + "-0\n"
+        # Header = src dest
+        message  = "\nHEADER " + str(self.id) + ' ' + str(output.dest) + '\n'
+        message += "ENTRY " + str(self.id) + " 0\n"
         for entry in self.entryTable.getEntries():
             dest, metric = (entry.dest, entry.metric)
             if (dest == output.dest): # Split Horizon with Poisoned Reverse
                 metric = INFINITY
-            message += "ENTRY " + str(dest) + '-' + str(metric) + '\n'
+            message += "ENTRY " + str(dest) + ' ' + str(metric) + '\n'
 
         checksum = self.checksum(message)
         return (checksum + message)
@@ -193,7 +211,6 @@ class Router(object):
                 metric to infinity (A constant INFINITY in reality)
         """
         message = self.createUpdate(output)
-        print(message)
         self.outputSocket.sendto(bytes(message,'utf-8'),
                                     (LOCALHOST,output.port))
 
@@ -202,11 +219,32 @@ class Router(object):
             If the checksum does not match the payload, drop the packet.
             Returns True on success
         """
-        # Error checking
         if not (self.verifies(message)):
-            print("Invalid packet.")
+            print("Invalid Checksum. Packed dropped!")
             return None # Drop the packet
-        return True
+        
+        lines = message.split('\n')
+        for line in lines[1:]: # Skip checksum
+            line = line.split(' ')
+            
+            if (line[0] == ''): # End of message
+                return None
+            
+            elif (line[0] == "HEADER"):
+                source = int(line[1])
+                routerid = int(line[2])
+                if (routerid != self.id):
+                    print("Message not destined for me. Dropping packet!")
+                output = self.outputs.get(source)
+            
+            elif (line[0] == "ENTRY"):
+                dest = int(line[1])
+                if (dest != self.id): # Do not add ourselves
+                    metric = int(line[2]) + output.metric 
+                    newEntry = Entry(dest, source, metric)
+                    self.entryTable.update(newEntry)
+            
+        return None
     
     def recieveUpdate(self, sock):
         """ Reads a packet from the socket 'sock'
@@ -215,7 +253,7 @@ class Router(object):
         packet = sock.recvfrom(BUFSIZE)
         address = packet[1]
         message = packet[0].decode(encoding='utf-8')
-        print("Packet recieved from " + address[0] + ':' + str(address[1]))#DBG
+        #print("Packet recieved from " + address[0] + ':' + str(address[1]))#DBG
         return message
      
     def broadcast(self):

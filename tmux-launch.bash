@@ -33,4 +33,3 @@ tmux new-session "$T1" \; \
         split-window -h "$T2" \; \
     select-pane -L \; \
 
-#python3 rip.py config/$i.cfg

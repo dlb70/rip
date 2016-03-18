@@ -369,7 +369,7 @@ if (__name__ =="__main__"):
         router.close()
         print("done")
         input("Press [ENTER] to exit")
-        exit()
+        exit(0)
 
 
 

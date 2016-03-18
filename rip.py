@@ -367,8 +367,7 @@ if (__name__ =="__main__"):
     except(KeyboardInterrupt, SystemExit):
         print("\nrecieved interrupt, closing...  ")
         router.close()
-        print("done")
-        input("Press [ENTER] to exit")
+        print("done.")
         exit(0)
 
 

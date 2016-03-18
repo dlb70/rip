@@ -1,0 +1,27 @@
+How to launch routers:
+
+To launch one instance of a router;
+
+    $ ./launch 3
+
+launches an instance of router 3. Each instance is run in a separate terminal.
+
+
+
+To launch all 7 routers in a split-pane tmux session;
+
+    $ ./tmux-launch
+
+All instances run in a single terminal, using tmux as a multiplexer.
+'ctrl-b + arrow keys' switches between terminal panels. 
+An additional 8th pane is added, running as a bash prompt. 
+All panes must be closed to exit tmux.
+This is useful for testing remotely from an SSH prompt.
+
+
+
+To launch all 7 routers in separate gnome-terminal windows;
+
+    $ ./run
+
+launches 7 individual windows each running a router instance.

@@ -1,21 +1,18 @@
 #!/usr/bin/env bash
-# CMD=bash
-# T1="echo 1 && $CMD"
-# T2="echo 2 && $CMD"
-# T3="echo 3 && $CMD"
-# T4="echo 4 && $CMD"
-# T5="echo 5 && $CMD"
-# T6="echo 6 && $CMD"
-# T7="echo 7 && $CMD"
-# T8="echo 8 && $CMD"
 
-T1="./launch.bash 1 $1"
-T2="./launch.bash 2 $1"
-T3="./launch.bash 3 $1"
-T4="./launch.bash 4 $1"
-T5="./launch.bash 5 $1"
-T6="./launch.bash 6 $1"
-T7="./launch.bash 7 $1"
+if [ "$1" == "" ]; then
+    dir="./config"
+else
+    dir="$1"
+fi
+
+T1="./launch.bash $dir/1.cfg"
+T2="./launch.bash $dir/2.cfg"
+T3="./launch.bash $dir/3.cfg"
+T4="./launch.bash $dir/4.cfg"
+T5="./launch.bash $dir/5.cfg"
+T6="./launch.bash $dir/6.cfg"
+T7="./launch.bash $dir/7.cfg"
 T8="bash"
 
 tmux new-session "$T1" \; \

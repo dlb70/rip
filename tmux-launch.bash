@@ -9,13 +9,13 @@
 # T7="echo 7 && $CMD"
 # T8="echo 8 && $CMD"
 
-T1="./launch.bash 1"
-T2="./launch.bash 2"
-T3="./launch.bash 3"
-T4="./launch.bash 4"
-T5="./launch.bash 5"
-T6="./launch.bash 6"
-T7="./launch.bash 7"
+T1="./launch.bash 1 $1"
+T2="./launch.bash 2 $1"
+T3="./launch.bash 3 $1"
+T4="./launch.bash 4 $1"
+T5="./launch.bash 5 $1"
+T6="./launch.bash 6 $1"
+T7="./launch.bash 7 $1"
 T8="bash"
 
 tmux new-session "$T1" \; \

@@ -49,7 +49,7 @@ class EntryTable(object):
     def __str__(self):
         return repr(self)
 
-    def toStr(self):
+    def tostr(self):
         rstr = ""
         for entry in self.getEntries():
             rstr += str(entry) + '\n'
@@ -132,13 +132,15 @@ class Router(object):
     
     def show(self):
         print("ID: " + str(self.id))
+        print("Table: ")
+        for entry in self.entryTable.getEntries():
+            print(" - " + str(entry))
+    
+    def showIO(self):
         print("Inputs: " + str(self.inputPorts))
         print("Outputs: ")
         for output in sorted(self.outputs.keys()):
             print(" - " + str(self.outputs.get(output)))
-        print("Table: ")
-        for entry in self.entryTable.getEntries():
-            print(" - " + str(entry))
     
     def checksum(self, payload):
         """ Returns a checksum of the payload """
@@ -258,7 +260,6 @@ class Router(object):
      
     def broadcast(self):
         """ Send a request message to all outputs """
-        self.show()
         for output in self.outputs.keys():
             self.sendUpdate(self.outputs.get(output))
     
@@ -290,6 +291,8 @@ class Router(object):
             for dest in expired: # Set metrics to infinity
                 self.entryTable.getEntry(dest).metric = INFINITY
             self.broadcast()     # Broadcast Update
+            self.show()
+            print()
             for dest in expired: # Remove Entries
                 self.entryTable.removeEntry(dest)
             return expired
@@ -338,6 +341,7 @@ def createRouter(cfg):
 def main(router):
     router.openInputSockets()
     router.openOutputSocket()
+    print("INITIALIZED.\n\n")
     router.broadcast()
     t = time()
     while True: 
@@ -345,6 +349,8 @@ def main(router):
             # router.show()
             t = time() + (random() - 0.5) * (TIMER * 0.4) # Randomises timer
             router.broadcast()
+            router.show()
+            print()
         
         packets = router.wait(TIMEOUT) # Wait for incoming packets
         if (packets != None):
@@ -361,7 +367,7 @@ if (__name__ =="__main__"):
     router = createRouter(configFile)
     configFile.close()
     router.show()
-    print("INITIALIZED.\n\n\n")
+    router.showIO()
     try:
         main(router)
     except(KeyboardInterrupt, SystemExit):

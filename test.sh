@@ -3,8 +3,10 @@
 
 GEOM="--geometry=50x26"
 
-for i in 1 2 3 4; do
-  echo $i;
-  gnome-terminal $GEOM -e "python3 rip.py $i.cfg" -t "Router $i" &
+dir="./$1"
+
+for cfg in $dir/*.cfg; do
+  echo $cfg;
+  gnome-terminal $GEOM -e "./launch.bash $cfg" -t "Router $cfg" &
   sleep 0.2
 done

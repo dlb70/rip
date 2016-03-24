@@ -2,7 +2,7 @@ How to launch routers:
 
 To launch one instance of a router;
 
-    $ ./launch 3
+    $ ./launch config/3.cfg
 
 launches an instance of router 3. Each instance is run in a separate terminal.
 

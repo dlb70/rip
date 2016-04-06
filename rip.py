@@ -80,12 +80,13 @@ class EntryTable(object):
                 self.entries.update({entry.dest:entry})
             return entry
         
-        if (current.first == entry.first): # If it came from the first hop
-            if (entry.metric < INFINITY):
-                self.entries.update({entry.dest:entry})
+        elif (current.first == entry.first): # If it came from the first hop
+            if (entry.metric > INFINITY):
+                entry.metric = INFINITY
+            self.entries.update({entry.dest:entry})
             return entry
         
-        if (entry.metric < current.metric): 
+        elif (entry.metric < current.metric): 
             self.entries.update({entry.dest:entry})
             return entry
     

@@ -13,6 +13,7 @@ BUFSIZE = 1023      # Maximum bytes read by socket.recvfrom()
 TIMER = 6           # Time between periodic updates
 TIMEOUT = TIMER/6.0 # Timout length for select()
 ENTRY_TIMEOUT = TIMER * 6 # Timeout length for entry invalidation
+GARBAGE = TIMER * 6
 INFINITY = 30
 
 
@@ -80,12 +81,13 @@ class EntryTable(object):
                 self.entries.update({entry.dest:entry})
             return entry
         
-        if (current.first == entry.first): # If it came from the first hop
-            if (entry.metric < INFINITY):
-                self.entries.update({entry.dest:entry})
+        elif (current.first == entry.first): # If it came from the first hop
+            if (entry.metric > INFINITY):
+                entry.metric = INFINITY
+            self.entries.update({entry.dest:entry})
             return entry
         
-        if (entry.metric < current.metric): 
+        elif (entry.metric < current.metric): 
             self.entries.update({entry.dest:entry})
             return entry
     
@@ -129,6 +131,7 @@ class Router(object):
         self.inputSockets = []
         self.outputs = outputs
         self.outputSocket = None
+        self.garbageTimer = 0
     
     def show(self):
         print("ID: " + str(self.id))
@@ -279,25 +282,23 @@ class Router(object):
     
     def garbageCollect(self):
         """ Removes expired entries from the entry table. 
-            Before removing the entries, set their metric to 99, and broadcast
-                an update.
-            Returns a list of removed destinations by their id.
+            Before removing the entries, set their metric to INFINITY
+                and broadcast an update.
+            Returns a list of removed entries.
         """
+        self.garbageTimer = time()
         expired = []
         for entry in self.entryTable.getEntries():
-            if (entry.timer() > ENTRY_TIMEOUT):
+            if (entry.timer() > ENTRY_TIMEOUT) or (entry.metric >= INFINITY):
                 expired.append(entry.dest)
+                entry.metric = INFINITY
         if (len(expired) != 0):
-            for dest in expired: # Set metrics to infinity
-                self.entryTable.getEntry(dest).metric = INFINITY
             self.broadcast()     # Broadcast Update
             self.show()
             print()
             for dest in expired: # Remove Entries
                 self.entryTable.removeEntry(dest)
-            return expired
-        else:
-            return None
+        return expired
             
     
     def close(self):
@@ -344,21 +345,31 @@ def main(router):
     print("INITIALIZED.\n\n")
     router.broadcast()
     t = time()
+    router.garbageTimer = time() + GARBAGE
     while True: 
+        # Do main router update message
         if ((time() - t) >= TIMER):
             # router.show()
             t = time() + (random() - 0.5) * (TIMER * 0.4) # Randomises timer
             router.broadcast()
             router.show()
             print()
-        
-        packets = router.wait(TIMEOUT) # Wait for incoming packets
+
+        # Wait for incoming packets
+        packets = router.wait(TIMEOUT) 
         if (packets != None):
             for packet in packets:
                 router.process(packet)
-
-        if (router.garbageCollect() != None):
+        
+        # Do garbage collection
+        if (time() - router.garbageTimer >= GARBAGE):
+            # timer reset is called from garbageCollect()
             print("GARBAGE COLLECTION")
+            n = len(router.garbageCollect())
+            print("GARBAGE COLLECTION: Removed " + str(n) + "entries.")
+
+        #if (router.garbageCollect() != None):
+        #    print("GARBAGE COLLECTION")
 
 if (__name__ =="__main__"):
     print("\nReading from config file: " + CONFIGFILE)

@@ -6,13 +6,14 @@ else
     dir="$1"
 fi
 
-T1="./launch $dir/1.cfg"
-T2="./launch $dir/2.cfg"
-T3="./launch $dir/3.cfg"
-T4="./launch $dir/4.cfg"
-T5="./launch $dir/5.cfg"
-T6="./launch $dir/6.cfg"
-T7="./launch $dir/7.cfg"
+CMD="./launch $dir"
+T1="$CMD/1.cfg"
+T2="$CMD/2.cfg"
+T3="$CMD/3.cfg"
+T4="$CMD/4.cfg"
+T5="$CMD/5.cfg"
+T6="$CMD/6.cfg"
+T7="$CMD/7.cfg"
 T8="bash"
 
 

@@ -1,10 +1,25 @@
 #!/usr/bin/env bash
 ### Initialization script for RIP simulation ###
+#
+# Invocation: 
+#
+# To launch with default (assignment specific) configuration:
+# $ ./run
+#
+# To launch with custom config directory:
+# $ ./run [dir]
+#
 
 GEOM="--geometry=50x26"
 
+if [ "$1" == "" ]; then
+    dir="./config"
+else
+    dir="$1"
+fi
+
 for i in {1..7}; do
   echo $i;
-  gnome-terminal $GEOM -e "./launch config/$i.cfg" -t "Router $i" &
+  gnome-terminal $GEOM -e "$dir/$i.cfg" -t "Router $i" &
   sleep 0.2
 done

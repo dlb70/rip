@@ -20,6 +20,6 @@ fi
 
 for i in {1..7}; do
   echo $i;
-  gnome-terminal $GEOM -e "$dir/$i.cfg" -t "Router $i" &
+  gnome-terminal $GEOM -e "./launch $dir/$i.cfg" -t "Router $i" &
   sleep 0.2
 done

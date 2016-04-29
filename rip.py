@@ -195,8 +195,8 @@ class Router(object):
         message  = "\nHEADER " + str(self.id) + ' ' + str(output.dest) + '\n'
         message += "ENTRY " + str(self.id) + " 0\n"
         for entry in self.entryTable.getEntries():
-            dest, metric = (entry.dest, entry.metric)
-            if (dest == output.dest): # Split Horizon with Poisoned Reverse
+            dest, metric, first = (entry.dest, entry.metric, entry.first)
+            if (first == output.dest): # Split Horizon with Poisoned Reverse
                 metric = INFINITY
             message += "ENTRY " + str(dest) + ' ' + str(metric) + '\n'
 

@@ -292,7 +292,7 @@ class Router(object):
                 and broadcast an update.
             Returns a list of removed entries.
         """
-        self.garbageTimer = time()
+        self.garbageTimer += GARBAGE
         expired = []
         for entry in self.entryTable.getEntries():
             if (entry.timer() > ENTRY_TIMEOUT) or (entry.metric >= INFINITY):
@@ -356,7 +356,7 @@ def main(router):
         # Do main router update message
         if ((time() - t) >= TIMER):
             # router.show()
-            t = time() + (random() - 0.5) * (TIMER * 0.4) # Randomises timer
+            t += TIMER + (random() - 0.5) * (TIMER * 0.4) # Randomises timer
             router.broadcast()
             router.show()
             print()

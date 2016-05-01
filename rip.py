@@ -70,7 +70,7 @@ class EntryTable(object):
         for dest in self.destinations():
             yield self.entries.get(dest)
 
-    def update(self, entry):
+    def update(self, entry): ##############################################
         """ Tests to see wether the new entry should be added.
             Adds the entry to the table (replacing older entry if there).
             Returns the new entry if added, or None if not added.
@@ -184,7 +184,7 @@ class Router(object):
         self.outputSocket = self.inputSockets[0]
         return self.outputSocket
     
-    def createUpdate(self, output):
+    def createUpdate(self, output): #######################################
         """ Create an update message (as a string) from the router's
             information and the routing table. 
             
@@ -225,7 +225,7 @@ class Router(object):
         self.outputSocket.sendto(bytes(message,'utf-8'),
                                     (LOCALHOST,output.port))
 
-    def process(self, message):
+    def process(self, message): ###########################################
         """ Takes an update message as a string and processes it.
             If the checksum does not match the payload, drop the packet.
             Returns True on success
@@ -286,7 +286,7 @@ class Router(object):
         else:
             return None
     
-    def garbageCollect(self):
+    def garbageCollect(self): #############################################
         """ Removes expired entries from the entry table. 
             Before removing the entries, set their metric to INFINITY
                 and broadcast an update.

@@ -13,8 +13,8 @@ BUFSIZE = 1023      # Maximum bytes read by socket.recvfrom()
 TIMER = 6           # Time between periodic updates
 TIMEOUT = TIMER/6.0 # Timout length for select()
 ENTRY_TIMEOUT = TIMER * 6 # Timeout length for entry invalidation
-GARBAGE = TIMER * 6
-INFINITY = 30
+GARBAGE = TIMER * 6 # Timer for garbage collection
+INFINITY = 30       # Metric representing infinity. 
 
 
 
@@ -36,6 +36,7 @@ class Entry(object):
         return rstr
     
     def timer(self):
+        """ Returns the time since last updated in seconds. """
         return time() - self.time
     
 
@@ -103,6 +104,10 @@ class EntryTable(object):
 
 
 class Output(object):
+    """ Class defining the attributes of an output.
+        Attributes refer to the destination router and its edge cost.
+    """
+
     def __init__(self, string):
         """ Takes a string input of the form "port-metric-dest" """
         elements = string.split('-')
@@ -119,11 +124,12 @@ class Output(object):
 
 class Router(object):
     def __init__(self, rtrid, inputPorts, outputs):
-        """
-            id          - is the int ID of the router
-            inputPorts  - is a list of ints which are ports on which to listen
-            outputs     - is a list of dict(s) of the form specified 
-                            in parseOutput()
+        """ A Router.
+            id          - is the int ID of the router.
+            inputPorts  - is a list of ints which are ports on which to listen.
+            outputs     - is a dict of the form {dest:Output},
+                where 'dest' is the destination id.
+            outputSocket    - is the socket on which updates are sent from.
         """
         self.id = rtrid
         self.entryTable = EntryTable()

@@ -1,0 +1,22 @@
+Things to mention in demonstration:
+
+What is Split Horizon with Poisoned Reverse?
+Where is it implemented?
+
+How is the select() statement used?
+
+How is packet integrity verified?
+
+How is timing ensured to be accurate?
+
+
+
+
+
+
+Test case for bugfix:
+start 12347
+shutdown 7
+start 7
+
+Caused routing loop - fixed in commit 521ebb3

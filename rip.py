@@ -268,7 +268,7 @@ class Router(object):
         return message
      
     def broadcast(self):
-        """ Send a request message to all outputs """
+        """ Send an update message to all outputs """
         for output in self.outputs.keys():
             self.sendUpdate(self.outputs.get(output))
     

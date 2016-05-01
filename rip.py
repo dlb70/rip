@@ -295,7 +295,7 @@ class Router(object):
         self.garbageTimer += GARBAGE
         expired = []
         for entry in self.entryTable.getEntries():
-            if (entry.timer() > ENTRY_TIMEOUT) or (entry.metric >= INFINITY):
+            if (entry.timer() > ENTRY_TIMEOUT):
                 expired.append(entry.dest)
                 entry.metric = INFINITY
         if (len(expired) != 0):

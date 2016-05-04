@@ -14,7 +14,7 @@ T4="$CMD/4.cfg"
 T5="$CMD/5.cfg"
 T6="$CMD/6.cfg"
 T7="$CMD/7.cfg"
-T8="bash"
+T8="echo 'Press [ctrl + b] and arrow keys to switch pane' && bash"
 
 
 

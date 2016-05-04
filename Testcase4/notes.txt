@@ -1,5 +1,4 @@
-Equal cost path test case.
+Test Case 4
+(Almost) Fully connected network test case
 
-1. Route 1-3 initially converges as 1-2-3 with metric 5.
-2. When 2 fails, 1-3 reconverges as 1-4-5-3 with metric 5.
-3. When 2 recovers, the route 1-3 remains as 1-4-5-3 as the metric is the same.
+Demonstrates the routing table of a connected network.

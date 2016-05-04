@@ -1,5 +1,10 @@
-Equal cost path test case.
+Test Case 3
+Poisoned Reverse test case.
 
-1. Route 1-3 initially converges as 1-2-3 with metric 5.
-2. When 2 fails, 1-3 reconverges as 1-4-5-3 with metric 5.
-3. When 2 recovers, the route 1-3 remains as 1-4-5-3 as the metric is the same.
+1. Routers 1 and 2 update each other at the same time.
+2. Router 3 fails.
+3. Routers 1 and 2 detect the failure at the same time.
+4. Routers 1 and 2 set each other as the first hop to dest 4.
+5. Poisoned reverse allows routers 1 and 2 to recognize this and break the 
+    link immediately. Without it, the routes would have to time out to 
+    be removed.

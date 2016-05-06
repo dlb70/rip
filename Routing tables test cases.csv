@@ -1,0 +1,97 @@
+Test Case 1,,,,,,,,
+Router 1,Dest,First,Metric,,,,,
+,2,2,2,,,,,
+,3,2,3,,,,,
+,,,,,,,,
+Router 2,Dest,First,Metric,,,,,
+,1,1,2,,,,,
+,3,3,1,,,,,
+,,,,,,,,
+Router 3,Dest,First,Metric,,,,,
+,1,2,3,,,,,
+,,,,,,,,
+,2,2,1,,,,,
+,,,,,,,,
+Test Case 2,,,,,After router 2 fails and restarts,,,
+Router 1,Dest,First,Metric,,Router 1,Dest,First,Metric
+,2,2,2,,,2,2,2
+,3,2,5,,,3,4,5
+,4,4,1,,,4,4,1
+,5,4,3,,,5,4,3
+,,,,,,,,
+Router 2,Dest,First,Metric,,Router 2,Dest,First,Metric
+,1,1,2,,,1,1,2
+,3,3,3,,,3,3,3
+,4,1,3,,,4,1,3
+,5,3,5,,,5,3,5
+,,,,,,,,
+Router 3,Dest,First,Metric,,Router 3,Dest,First,Metric
+,1,2,5,,,1,2,5
+,2,2,3,,,2,2,3
+,4,5,4,,,4,5,4
+,5,5,2,,,5,5,2
+,,,,,,,,
+Router 4,Dest,First,Metric,,Router 4,Dest,First,Metric
+,1,1,1,,,1,1,1
+,2,1,3,,,2,1,3
+,3,5,4,,,3,5,4
+,5,5,2,,,5,5,2
+,,,,,,,,
+Router 5,Dest,First,Metric,,Router 5,Dest,First,Metric
+,1,4,3,,,1,4,3
+,2,3,5,,,2,3,5
+,3,3,2,,,3,3,2
+,4,4,2,,,4,4,2
+,,,,,,,,
+,,,,,,,,
+Test Case 3,,,,,Immediately after router 3 fails.,,,
+Router 1,Dest,First,Metric,,Router 1,Dest,First,Metric
+,2,2,1,,,2,2,1
+,3,3,1,,,,,
+,4,3,2,,,4,2,2
+,,,,,,,,
+Router 2,Dest,First,Metric,,Router 2,Dest,First,Metric
+,1,1,1,,,1,1,1
+,3,1,1,,,,,
+,4,3,2,,,4,1,2
+,,,,,,,,
+Router 3,Dest,First,Metric,,After poisoned reverse update,,,
+,1,1,1,,Router 1,Dest,First,Metric
+,2,2,1,,,2,2,1
+,4,4,1,,,,,
+,,,,,,4,2,30
+Router 4,Dest,First,Metric,,,,,
+,1,3,2,,Router 2,Dest,First,Metric
+,2,3,2,,,1,1,1
+,3,3,1,,,,,
+,,,,,,4,1,30
+Test Case 4,,,,,,,,
+Router 1,Dest,First,Metric,,,,,
+,2,2,1,,,,,
+,3,2,3,,,,,
+,4,2,6,,,,,
+,5,5,5,,,,,
+,,,,,,,,
+Router 2,Dest,First,Metric,,,,,
+,1,1,2,,,,,
+,3,3,2,,,,,
+,4,3,5,,,,,
+,5,5,6,,,,,
+,,,,,,,,
+Router 3,Dest,First,Metric,,,,,
+,1,2,3,,,,,
+,2,2,2,,,,,
+,4,4,3,,,,,
+,5,4,7,,,,,
+,,,,,,,,
+Router 4,Dest,First,Metric,,,,,
+,1,3,6,,,,,
+,2,3,5,,,,,
+,3,3,3,,,,,
+,5,5,4,,,,,
+,,,,,,,,
+Router 5,Dest,First,Metric,,,,,
+,1,1,5,,,,,
+,2,2,6,,,,,
+,3,4,7,,,,,
+,4,4,4,,,,,
